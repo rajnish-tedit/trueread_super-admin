@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hub — Super Admin Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:#F4F7FB;color:#0D2137;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.fu{animation:fadeUp .4s ease both}
+.fu1{animation:fadeUp .4s .06s ease both;opacity:0}
+.fu2{animation:fadeUp .4s .12s ease both;opacity:0}
+.fi{animation:fadeIn .3s ease both}
+
+/* ── Prototype banner ── */
+.proto-banner{background:#0D2137;color:#F4F7FB;padding:10px 24px;display:flex;align-items:center;gap:12px;font-size:13px;flex-wrap:wrap}
+.proto-banner .tag{background:#FFB547;color:#412402;font-weight:700;font-size:10px;letter-spacing:.6px;padding:3px 9px;border-radius:20px;text-transform:uppercase}
+.proto-banner .sep{opacity:.4}
+.proto-banner .meta{color:rgba(244,247,251,.65)}
+
+/* ── Shell ── */
+.sa-shell{display:flex;height:calc(100vh - 41px);position:relative;overflow:hidden}
+
+/* ── Sidebar (matches The Hub's dark sidebar look via light surface translucent style) ── */
+.sa-sidebar{width:240px;flex-shrink:0;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);border-right:1px solid rgba(13,33,55,.05);display:flex;flex-direction:column;overflow-y:auto;transition:margin-top .2s}
+.sa-logo-row{padding:16px 20px 12px;display:flex;align-items:center;gap:10px}
+.lmark{width:32px;height:32px;background:linear-gradient(135deg,#00C49A,#00A882);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#F4F7FB;font-size:13px;flex-shrink:0}
+.sa-logo-text{font-family:'Instrument Serif',serif;font-size:18px;letter-spacing:-.01em;color:#0D2137}
+.sa-role-row{padding:0 20px 14px}
+.sa-role-tag{font-size:10px;font-weight:600;color:#7B6FFF;background:rgba(123,111,255,.12);border:1px solid rgba(123,111,255,.2);padding:3px 9px;border-radius:20px;letter-spacing:.02em}
+
+.sb-sec{font-size:10.5px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.08em;padding:14px 20px 6px}
+.sbi{display:flex;align-items:center;gap:10px;padding:9px 16px;margin:0 8px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:#0D2137;transition:.15s;user-select:none;position:relative}
+.sbi:hover{background:rgba(13,33,55,.05)}
+.sbi.on{background:rgba(0,196,154,.1);color:#00A882;box-shadow:0 0 0 1px rgba(0,196,154,.18) inset}
+.sbi-icon{width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:currentColor}
+.sb-badge{margin-left:auto;font-size:10px;font-weight:700;background:rgba(255,107,74,.15);color:#FF6B4A;padding:1px 7px;border-radius:20px}
+.sb-badge-amber{background:rgba(255,181,71,.18);color:#854F0B}
+.sb-div{height:1px;background:rgba(13,33,55,.06);margin:10px 16px}
+
+.sa-footer{margin-top:auto;padding:12px}
+.sa-user-chip{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;cursor:pointer;background:rgba(13,33,55,.03);border:1px solid rgba(13,33,55,.05);transition:.15s}
+.sa-user-chip:hover{background:rgba(13,33,55,.06)}
+.sa-avatar{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#00C49A,#7B6FFF);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#F4F7FB;flex-shrink:0}
+
+/* ── Main ── */
+.sa-main{flex:1;display:flex;flex-direction:column;overflow:hidden;transition:padding-top .2s}
+.sa-topbar{height:56px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(13,33,55,.06);display:flex;align-items:center;gap:14px;padding:0 24px;flex-shrink:0}
+.sa-breadcrumb{font-size:13px;color:#374151}
+.sa-breadcrumb strong{color:#0D2137;font-weight:600}
+.sa-topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 16px;border-radius:10px;font-size:12.5px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;border:none;white-space:nowrap;letter-spacing:-.01em}
+.btn-electric{background:linear-gradient(135deg,#00C49A,#00C49A);color:#F4F7FB;box-shadow:0 4px 20px rgba(0,196,154,.25)}
+.btn-electric:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,196,154,.35)}
+.btn-ghost{background:rgba(13,33,55,.06);color:#0D2137;border:1px solid rgba(13,33,55,.1)}
+.btn-ghost:hover{background:rgba(13,33,55,.1);border-color:rgba(0,196,154,.4);color:#00A882}
+.btn-danger{background:rgba(255,107,74,.12);color:#FF6B4A;border:1px solid rgba(255,107,74,.25)}
+.btn-danger:hover{background:rgba(255,107,74,.2)}
+.btn-sm{padding:5px 11px;font-size:11.5px;border-radius:8px}
+.btn:active{transform:scale(.98)}
+
+.search-input{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;background:rgba(13,33,55,.05);border:1px solid rgba(13,33,55,.1);font-size:12.5px;color:#0D2137;cursor:text;min-width:180px}
+
+.sa-content{flex:1;overflow-y:auto;padding:28px 32px;background:#F4F7FB}
+.sa-screen{display:none}
+.sa-screen.active{display:block;animation:fadeIn .15s ease}
+
+/* ── KPI / stat cards ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat{background:#FFFFFF;border:1px solid rgba(13,33,55,.06);border-radius:16px;box-shadow:0 1px 0 rgba(13,33,55,.04) inset, 0 4px 20px rgba(13,33,55,.05);padding:18px}
+.stat-label{font-size:10px;font-weight:600;color:#374151;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:5px}
+.stat-value{font-family:'Instrument Serif',serif;font-size:30px;color:#0D2137;margin:6px 0 4px;letter-spacing:-.01em}
+.stat-delta{font-size:11px;font-weight:600}
+.up{color:#00A882}.down{color:#991B1B}.warn{color:#78350F}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.section-title{font-family:'Instrument Serif',serif;font-size:20px;color:#0D2137;letter-spacing:-.01em}
+.section-sub{font-size:12px;color:#374151;margin-top:2px}
+
+.card-dark{background:#FFFFFF;border:1px solid rgba(13,33,55,.06);border-radius:16px;box-shadow:0 1px 0 rgba(13,33,55,.04) inset, 0 4px 20px rgba(13,33,55,.05);padding:20px 22px;margin-bottom:18px}
+.card-raised{background:#F0F4F9;border:1px solid rgba(13,33,55,.08);border-radius:14px}
+
+/* ── Tables ── */
+.table-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:.06em;padding:11px 14px;text-align:left;background:rgba(13,33,55,.03);border-bottom:1px solid rgba(13,33,55,.05);white-space:nowrap}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgba(13,33,55,.04);font-size:12.5px;color:#0A1929;vertical-align:middle}
+.tbl tr:hover td{background:rgba(13,33,55,.025)}
+.tbl tr:last-child td{border-bottom:none}
+
+/* ── Pills ── */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+.pill-ok{background:rgba(0,196,154,.08);color:#00A882;border:1px solid rgba(0,196,154,.2)}
+.pill-warn{background:rgba(255,181,71,.12);color:#854F0B;border:1px solid rgba(255,181,71,.25)}
+.pill-danger{background:rgba(255,107,74,.12);color:#FF6B4A;border:1px solid rgba(255,107,74,.25)}
+.pill-blue{background:rgba(168,216,255,.18);color:#0A6BB8;border:1px solid rgba(168,216,255,.3)}
+.pill-purple{background:rgba(123,111,255,.12);color:#7B6FFF;border:1px solid rgba(123,111,255,.2)}
+.pill-ghost{background:rgba(13,33,55,.06);color:#0D2137;border:1px solid rgba(13,33,55,.1)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}
+.dot-ok{background:#00C49A}
+.dot-danger{background:#FF6B4A}
+.dot-warn{background:#FFB547}
+.acct-init{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex-shrink:0}
+.row-actions{display:flex;gap:6px}
+
+/* ── Alerts ── */
+.sa-alert{display:flex;align-items:flex-start;gap:10px;padding:13px 15px;border-radius:12px;margin-bottom:10px;font-size:12.5px}
+.sa-alert:last-child{margin-bottom:0}
+.sa-alert-danger{background:rgba(255,107,74,.08);border:1px solid rgba(255,107,74,.22);color:#9A3412}
+.sa-alert-warn{background:rgba(255,181,71,.12);border:1px solid rgba(255,181,71,.3);color:#78350F}
+
+/* ── Layout ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.plan-card{background:#F0F4F9;border:1px solid rgba(13,33,55,.08);border-radius:14px;padding:18px;text-align:center}
+.plan-count{font-family:'Instrument Serif',serif;font-size:32px;color:#0D2137}
+.plan-label{font-size:11px;color:#374151;margin-top:2px;font-weight:500}
+.plan-rev{font-size:12px;font-weight:600;margin-top:8px}
+
+/* ── Timeline ── */
+.timeline-item{display:flex;gap:12px;margin-bottom:15px}
+.timeline-item:last-child{margin-bottom:0}
+.timeline-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.timeline-title{font-size:12.5px;font-weight:600;color:#0D2137}
+.timeline-meta{font-size:11px;color:#374151;margin-top:2px}
+
+/* ── Impersonation bar ── */
+.impersonate-bar{background:linear-gradient(135deg,rgba(255,181,71,.95),rgba(255,181,71,.95));padding:9px 24px;font-size:12.5px;font-weight:600;color:#412402;display:none;align-items:center;gap:10px;flex-shrink:0;position:absolute;top:0;left:0;right:0;z-index:50;box-shadow:0 2px 12px rgba(255,181,71,.3)}
+.impersonate-bar.show{display:flex}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:2px;background:rgba(13,33,55,.05);padding:3px;border-radius:10px}
+.tab{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;color:#374151;user-select:none}
+.tab.active{background:#FFFFFF;color:#0D2137;font-weight:600;box-shadow:0 1px 4px rgba(13,33,55,.08)}
+
+/* ── Progress ── */
+.prog-track{height:5px;background:rgba(13,33,55,.06);border-radius:4px;overflow:hidden;margin-top:7px}
+.prog-fill{height:100%;background:linear-gradient(90deg,#00C49A,#00C49A);border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* ── Feature flags / toggles ── */
+.feature-flag{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(13,33,55,.05);gap:12px}
+.feature-flag:last-child{border-bottom:none}
+.tog{width:40px;height:22px;background:rgba(13,33,55,.1);border-radius:22px;position:relative;cursor:pointer;transition:.25s;flex-shrink:0;border:1px solid rgba(13,33,55,.1)}
+.tog.on{background:#00C49A;border-color:#00A882;box-shadow:0 0 10px rgba(0,196,154,.25)}
+.tog-k{position:absolute;width:15px;height:15px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.25s}
+.tog.on .tog-k{left:21px}
+
+/* ── Form / modal ── */
+.inp{width:100%;padding:10px 13px;background:rgba(13,33,55,.05);border:1px solid rgba(13,33,55,.1);border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;color:#0D2137;outline:none;transition:all .2s}
+.inp::placeholder{color:#9CA3AF}
+.inp:focus{border-color:rgba(0,196,154,.5);background:rgba(0,196,154,.04);box-shadow:0 0 0 3px rgba(0,196,154,.08)}
+select.inp{cursor:pointer}
+textarea.inp{resize:none;font-family:'DM Sans',sans-serif}
+.inp-label{font-size:11px;font-weight:600;color:#0A1929;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;display:block}
+.form-row{margin-bottom:14px}
+.form-row-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.modal-bg{position:fixed;inset:0;background:rgba(13,33,55,.4);backdrop-filter:blur(8px);z-index:300;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:#FFFFFF;border:1px solid rgba(13,33,55,.1);border-radius:20px;padding:28px;width:480px;max-width:95vw;max-height:88vh;overflow-y:auto;box-shadow:0 40px 80px rgba(13,33,55,.3)}
+.modal-title{font-family:'Instrument Serif',serif;font-size:22px;color:#0D2137;margin-bottom:4px}
+.modal-sub{font-size:12.5px;color:#374151;margin-bottom:20px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;border-top:1px solid rgba(13,33,55,.06);padding-top:18px}
+
+/* ── Toast ── */
+#toast-box{position:fixed;bottom:24px;right:24px;z-index:400}
+.toast{background:#F0F4F9;border:1px solid rgba(13,33,55,.1);color:#0D2137;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(13,33,55,.1);animation:toastIn .3s ease;display:flex;align-items:center;gap:9px;opacity:0;transform:translateY(20px) scale(.95);transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translateY(0) scale(1)}
+
+.mobile-menu-btn{display:none}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(13,33,55,.12);border-radius:4px}
+
+@media (max-width:880px){
+  .sa-sidebar{position:absolute;left:0;top:0;bottom:0;z-index:60;transform:translateX(-100%);transition:transform .2s;box-shadow:4px 0 20px rgba(13,33,55,.15)}
+  .sa-sidebar.open{transform:translateX(0)}
+  .mobile-menu-btn{display:inline-flex}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .search-input{display:none}
+}
+@media (max-width:520px){
+  .kpi-grid{grid-template-columns:1fr}
+  .form-row-grid{grid-template-columns:1fr}
+  .sa-content{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="proto-banner">
+  <span class="tag">Prototype</span>
+  <span>The Hub — Super Admin Portal</span>
+  <span class="sep">·</span>
+  <span class="meta">Built by TedIT Web Solutions for TrueRead · Same theme as the tenant-facing app · Static demo, no real data</span>
+</div>
+
+<div class="sa-shell">
+
+  <div class="impersonate-bar" id="impersonate-bar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#412402" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Impersonating: <strong id="impersonate-name">Smith Roofing LLC</strong> — viewing as the account owner
+    <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="stopImpersonate()">Exit impersonation</button>
+  </div>
+
+  <aside class="sa-sidebar" id="sa-sidebar">
+    <div class="sa-logo-row">
+      <div class="lmark">H</div>
+      <span class="sa-logo-text">The Hub</span>
+    </div>
+    <div class="sa-role-row"><span class="sa-role-tag">Super Admin</span></div>
+
+    <div class="sb-sec">Platform</div>
+    <div class="sbi on" onclick="goScreen('overview',this)">
+      <div class="sbi-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      Overview
+    </div>
+    <div class="sbi" onclick="goScreen('tenants',this)">
+      <div class="sbi-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></div>
+      Tenants<span class="sb-badge sb-badge-amber">3</span>
+    </div>
+    <div class="sbi" onclick="goScreen('billing',this)">
+      <div class="sbi-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+      Billing &amp; Revenue
+    </div>
+
+    <div class="sb-sec">Operations</div>
+    <div class="sbi" onclick="goScreen('support',this)">
+      <div class="sbi-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11a9 9 0 0 1 18 0v6a2 2 0 0 1-2 2h-2v-8h4"/><path d="M3 11v6a2 2 0 0 0 2 2h2v-8H3"/></svg></div>
+      Support Tickets<span class="sb-badge">7</span>
+    </div>
+    <div class="sbi" onclick="goScreen('health',this)">
+      <div class="sbi-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      System Health
+    </div>
+    <div class="sbi" onclick="goScreen('audit',this)">
+      <div class="sbi-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.6 0 3.1.42 4.4 1.15"/><path d="M21 5l-9 9"/></svg></div>
+      Audit Log
+    </div>
+
+    <div class="sb-sec">Config</div>
+    <div class="sbi" onclick="goScreen('flags',this)">
+      <div class="sbi-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="7"/><circle cx="8" cy="12" r="3"/></svg></div>
+      Feature Flags
+    </div>
+    <div class="sbi" onclick="goScreen('announcements',this)">
+      <div class="sbi-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.2-3"/></svg></div>
+      Announcements
+    </div>
+    <div class="sbi" onclick="goScreen('admins',this)">
+      <div class="sbi-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      Admin Users
+    </div>
+
+    <div class="sa-footer">
+      <div class="sa-user-chip">
+        <div class="sa-avatar">RK</div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600">Rajnish K.</div>
+          <div style="font-size:11px;color:#374151">Super Admin</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" style="margin-left:auto"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41"/><path d="M4.93 4.93l1.41 1.41"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M20 12h2"/><path d="M2 12h2"/><path d="M19.07 19.07l-1.41-1.41"/><path d="M4.93 19.07l1.41-1.41"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sa-main" id="sa-main">
+    <div class="sa-topbar">
+      <button class="btn btn-ghost btn-sm mobile-menu-btn" onclick="toggleSidebar()" aria-label="Toggle menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/></svg>
+      <div class="sa-breadcrumb" id="topbar-crumb">Platform <strong>Overview</strong></div>
+      <div class="sa-topbar-actions">
+        <div class="search-input" onclick="goScreen('tenants',document.querySelectorAll('.sbi')[1])">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span style="color:#9CA3AF">Search tenants...</span>
+        </div>
+        <button class="btn btn-electric" onclick="openModal('add-tenant-modal')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add tenant
+        </button>
+      </div>
+    </div>
+
+    <div class="sa-content">
+
+      <!-- ══ OVERVIEW ══ -->
+      <div class="sa-screen active" id="screen-overview">
+        <div class="kpi-grid fu">
+          <div class="stat">
+            <div class="stat-label">Active tenants</div>
+            <div class="stat-value">142</div>
+            <div class="stat-delta up">↑ 14 this month</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Monthly revenue</div>
+            <div class="stat-value">$28.4K</div>
+            <div class="stat-delta up">↑ $3.1K vs last month</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Trials active</div>
+            <div class="stat-value">31</div>
+            <div class="stat-delta warn">8 expiring in 3 days</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Needs attention</div>
+            <div class="stat-value">11</div>
+            <div class="stat-delta down">3 failed payments · 8 tickets</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="card-dark fu1">
+              <div class="section-header"><div class="section-title">Tenant breakdown by plan</div></div>
+              <div class="three-col">
+                <div class="plan-card">
+                  <div class="plan-count">31</div>
+                  <div class="plan-label">Free trial</div>
+                  <div class="plan-rev" style="color:#9CA3AF">$0/mo</div>
+                </div>
+                <div class="plan-card">
+                  <div class="plan-count">74</div>
+                  <div class="plan-label">Basic</div>
+                  <div class="plan-rev up">$7.3K/mo</div>
+                </div>
+                <div class="plan-card">
+                  <div class="plan-count">37</div>
+                  <div class="plan-label">Pro</div>
+                  <div class="plan-rev up">$5.5K/mo</div>
+                </div>
+              </div>
+              <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(13,33,55,.06)">
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#374151;margin-bottom:6px">
+                  <span>Trial-to-paid conversion (30d)</span><strong style="color:#0D2137">62%</strong>
+                </div>
+                <div class="prog-track"><div class="prog-fill" style="width:62%"></div></div>
+              </div>
+            </div>
+
+            <div class="card-dark fu1">
+              <div class="section-title" style="margin-bottom:14px;font-size:17px">Failed payments</div>
+              <div class="sa-alert sa-alert-danger">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6B4A" stroke-width="2" style="flex-shrink:0;margin-top:1px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="9" y1="15" x2="9" y2="15.01" stroke-width="3"/></svg>
+                <div><strong>Peak Roofing Partners</strong> — $150/mo overdue 9 days. Card ending 4882 declined.</div>
+              </div>
+              <div class="sa-alert sa-alert-danger">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF6B4A" stroke-width="2" style="flex-shrink:0;margin-top:1px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="9" y1="15" x2="9" y2="15.01" stroke-width="3"/></svg>
+                <div><strong>Summit Roof Co.</strong> — $99/mo overdue 4 days. Card ending 3219 declined.</div>
+              </div>
+              <div class="sa-alert sa-alert-warn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div><strong>Blue Ridge Roofing</strong> — Card expiring in 6 days. Renewal at risk.</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card-dark fu2">
+              <div class="section-title" style="margin-bottom:14px;font-size:17px">Recent activity</div>
+              <div class="timeline-item">
+                <div class="timeline-dot dot-ok"></div>
+                <div><div class="timeline-title">Smith Roofing LLC upgraded to Pro</div><div class="timeline-meta">2 min ago · Recurly event · $150/mo</div></div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot dot-ok"></div>
+                <div><div class="timeline-title">Apex Home Services — new signup</div><div class="timeline-meta">18 min ago · Free trial started · GHL connected</div></div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot dot-danger"></div>
+                <div><div class="timeline-title">Summit Roof Co. — payment failed</div><div class="timeline-meta">1 hr ago · Retry scheduled · Email sent</div></div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot dot-warn"></div>
+                <div><div class="timeline-title">Horizon Roofing — support ticket opened</div><div class="timeline-meta">2 hrs ago · Data sync issue · Unassigned</div></div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot dot-ok"></div>
+                <div><div class="timeline-title">Ridgeline Corp — trial converted to Basic</div><div class="timeline-meta">3 hrs ago · $99/mo · Card saved</div></div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot" style="background:#A8D8FF"></div>
+                <div><div class="timeline-title">System: Recurly webhook processed</div><div class="timeline-meta">5 hrs ago · 28 invoices settled · $24.6K</div></div>
+              </div>
+            </div>
+
+            <div class="card-dark fu2">
+              <div class="section-title" style="margin-bottom:14px;font-size:17px">Connector health</div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>GoHighLevel API</span><span class="pill pill-ok">Healthy · 142</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>Leap CRM</span><span class="pill pill-ok">Healthy · 67</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-warn"></span>CallRail</span><span class="pill pill-warn">Degraded · 3 errors</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>WhatConverts</span><span class="pill pill-ok">Healthy · 89</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>Recurly billing</span><span class="pill pill-ok">Healthy</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TENANTS ══ -->
+      <div class="sa-screen" id="screen-tenants">
+        <div class="section-header">
+          <div><div class="section-title">All tenants</div><div class="section-sub">142 accounts · 3 need attention</div></div>
+          <button class="btn btn-electric" onclick="openModal('add-tenant-modal')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add tenant
+          </button>
+        </div>
+        <div class="card-dark" style="padding:0">
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid rgba(13,33,55,.06);flex-wrap:wrap">
+            <div class="tabs">
+              <div class="tab active" onclick="filterTenants('all',this)">All (142)</div>
+              <div class="tab" onclick="filterTenants('trial',this)">Trial (31)</div>
+              <div class="tab" onclick="filterTenants('paid',this)">Paid (111)</div>
+              <div class="tab" onclick="filterTenants('issue',this)">Issues (3)</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+              <select class="inp" style="width:auto;padding:6px 12px;font-size:12px"><option>All CRMs</option><option>GoHighLevel</option><option>Leap CRM</option><option>AccuLynx</option><option>JobNimbus</option></select>
+              <select class="inp" style="width:auto;padding:6px 12px;font-size:12px"><option>All plans</option><option>Free</option><option>Basic</option><option>Pro</option><option>Enterprise</option></select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="tbl" id="tenant-table">
+              <thead><tr><th>Company</th><th>Plan</th><th>Branches</th><th>Seats</th><th>CRM</th><th>MRR</th><th>Trial / Joined</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="tenant-tbody">
+                <tr data-status="paid">
+                  <td><div style="display:flex;align-items:center;gap:9px"><div class="acct-init" style="background:rgba(0,196,154,.12);color:#00A882">SR</div><div><div style="font-weight:600">Smith Roofing LLC</div><div style="font-size:10.5px;color:#6B7280">john@smithroofing.com</div></div></div></td>
+                  <td><span class="pill pill-purple">Pro</span></td><td>4</td><td>23</td>
+                  <td><span class="pill pill-ghost">GHL</span></td>
+                  <td style="font-weight:600">$150</td>
+                  <td style="color:#6B7280">Jun 1 2026</td>
+                  <td><span class="pill pill-ok"><span class="dot dot-ok"></span>Active</span></td>
+                  <td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="impersonate('Smith Roofing LLC')" title="Impersonate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn btn-ghost btn-sm" onclick="openTenantDetail('Smith Roofing LLC')" title="Open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></td>
+                </tr>
+                <tr data-status="issue">
+                  <td><div style="display:flex;align-items:center;gap:9px"><div class="acct-init" style="background:rgba(0,196,154,.1);color:#0D2137">PR</div><div><div style="font-weight:600">Peak Roofing Partners</div><div style="font-size:10.5px;color:#6B7280">ceo@peakroofing.com</div></div></div></td>
+                  <td><span class="pill pill-blue">Basic</span></td><td>1</td><td>8</td>
+                  <td><span class="pill pill-ghost">Leap</span></td>
+                  <td style="font-weight:600;color:#FF6B4A">$0 ⚠</td>
+                  <td style="color:#6B7280">May 12 2026</td>
+                  <td><span class="pill pill-danger"><span class="dot dot-danger"></span>Overdue 9d</span></td>
+                  <td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="impersonate('Peak Roofing Partners')" title="Impersonate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn btn-danger btn-sm" onclick="showToast('Reminder email sent to Peak Roofing Partners')" title="Send reminder"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg></button></div></td>
+                </tr>
+                <tr data-status="trial">
+                  <td><div style="display:flex;align-items:center;gap:9px"><div class="acct-init" style="background:rgba(255,181,71,.15);color:#854F0B">AH</div><div><div style="font-weight:600">Apex Home Services</div><div style="font-size:10.5px;color:#6B7280">ops@apexhome.com</div></div></div></td>
+                  <td><span class="pill pill-ghost">Free</span></td><td>1</td><td>4</td>
+                  <td><span class="pill pill-ghost">GHL</span></td>
+                  <td style="color:#9CA3AF">—</td>
+                  <td style="color:#6B7280">Day 1 of 20</td>
+                  <td><span class="pill pill-warn"><span class="dot dot-warn"></span>Trial</span></td>
+                  <td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="impersonate('Apex Home Services')" title="Impersonate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn btn-ghost btn-sm" onclick="openTenantDetail('Apex Home Services')" title="Open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></td>
+                </tr>
+                <tr data-status="paid">
+                  <td><div style="display:flex;align-items:center;gap:9px"><div class="acct-init" style="background:rgba(123,111,255,.12);color:#7B6FFF">RC</div><div><div style="font-weight:600">Ridgeline Corp</div><div style="font-size:10.5px;color:#6B7280">ridgeline@corp.com</div></div></div></td>
+                  <td><span class="pill pill-blue">Basic</span></td><td>1</td><td>11</td>
+                  <td><span class="pill pill-ghost">AccuLynx</span></td>
+                  <td style="font-weight:600">$99</td>
+                  <td style="color:#6B7280">May 28 2026</td>
+                  <td><span class="pill pill-ok"><span class="dot dot-ok"></span>Active</span></td>
+                  <td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="impersonate('Ridgeline Corp')" title="Impersonate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn btn-ghost btn-sm" onclick="openTenantDetail('Ridgeline Corp')" title="Open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></td>
+                </tr>
+                <tr data-status="issue">
+                  <td><div style="display:flex;align-items:center;gap:9px"><div class="acct-init" style="background:rgba(255,107,74,.12);color:#FF6B4A">SC</div><div><div style="font-weight:600">Summit Roof Co.</div><div style="font-size:10.5px;color:#6B7280">admin@summitroofco.com</div></div></div></td>
+                  <td><span class="pill pill-blue">Basic</span></td><td>1</td><td>6</td>
+                  <td><span class="pill pill-ghost">GHL</span></td>
+                  <td style="font-weight:600;color:#FF6B4A">$0 ⚠</td>
+                  <td style="color:#6B7280">May 5 2026</td>
+                  <td><span class="pill pill-danger"><span class="dot dot-danger"></span>Overdue 4d</span></td>
+                  <td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="impersonate('Summit Roof Co.')" title="Impersonate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn btn-danger btn-sm" onclick="showToast('Reminder email sent to Summit Roof Co.')" title="Send reminder"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg></button></div></td>
+                </tr>
+                <tr data-status="paid">
+                  <td><div style="display:flex;align-items:center;gap:9px"><div class="acct-init" style="background:rgba(0,196,154,.12);color:#00A882">HR</div><div><div style="font-weight:600">Horizon Roofing</div><div style="font-size:10.5px;color:#6B7280">owner@horizonroofing.com</div></div></div></td>
+                  <td><span class="pill pill-purple">Pro</span></td><td>3</td><td>17</td>
+                  <td><span class="pill pill-ghost">GHL</span></td>
+                  <td style="font-weight:600">$150</td>
+                  <td style="color:#6B7280">Apr 18 2026</td>
+                  <td><span class="pill pill-warn"><span class="dot dot-warn"></span>Support open</span></td>
+                  <td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="impersonate('Horizon Roofing')" title="Impersonate"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn btn-ghost btn-sm" onclick="openTenantDetail('Horizon Roofing')" title="Open"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TENANT DETAIL ══ -->
+      <div class="sa-screen" id="screen-tenant-detail">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="goScreen('tenants',document.querySelectorAll('.sbi')[1])"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Tenants</button>
+          <div class="section-title" style="font-size:20px" id="detail-tenant-name">Smith Roofing LLC</div>
+          <span class="pill pill-purple">Pro</span>
+          <span class="pill pill-ok">Active</span>
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="impersonate(document.getElementById('detail-tenant-name').textContent)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Impersonate</button>
+          <button class="btn btn-danger btn-sm" onclick="showToast('Tenant suspended (demo only)')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Suspend</button>
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="card-dark">
+              <div class="section-title" style="margin-bottom:14px;font-size:17px">Account info</div>
+              <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Owner</span><span>John Smith</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Email</span><span>john@smithroofing.com</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Phone</span><span>(908) 555-0142</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Company type</span><span>Multi-location franchise</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">HQ state</span><span>New Jersey</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Branches</span><span>NJ · NY · FL · Miami</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Seats</span><span>23 of 23 used</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Tenant ID</span><span style="font-family:'JetBrains Mono',monospace;font-size:11px">t_8f2a9c1d</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Signed up</span><span>Jun 1, 2026</span></div>
+              </div>
+            </div>
+            <div class="card-dark">
+              <div class="section-title" style="margin-bottom:14px;font-size:17px">Billing</div>
+              <div style="display:flex;flex-direction:column;gap:9px;font-size:13px">
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Plan</span><span class="pill pill-purple">Pro $150/mo</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Billing cycle</span><span>Monthly</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Next invoice</span><span>Jul 1, 2026 · $150</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Card</span><span>Visa ending 4321 · exp 03/28</span></div>
+                <div style="display:flex;justify-content:space-between"><span style="color:#6B7280">Total paid LTV</span><span style="font-weight:600">$150 (1 invoice)</span></div>
+              </div>
+              <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-ghost btn-sm" onclick="showToast('Trial extended by 7 days (demo only)')">Extend trial</button>
+                <button class="btn btn-ghost btn-sm" onclick="showToast('Plan change flow opened (demo only)')">Change plan</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card-dark">
+              <div class="section-title" style="margin-bottom:14px;font-size:17px">Connected tools</div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;padding:9px 0;border-bottom:1px solid rgba(13,33,55,.05);gap:8px;flex-wrap:wrap">
+                  <span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>GoHighLevel</span>
+                  <span style="color:#6B7280">312 contacts · 4 min ago</span>
+                  <span class="pill pill-ok">Healthy</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;padding:9px 0;border-bottom:1px solid rgba(13,33,55,.05);gap:8px;flex-wrap:wrap">
+                  <span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>Leap CRM</span>
+                  <span style="color:#6B7280">87 jobs · 12 min ago</span>
+                  <span class="pill pill-ok">Healthy</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;padding:9px 0;border-bottom:1px solid rgba(13,33,55,.05);gap:8px;flex-wrap:wrap">
+                  <span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>CallRail</span>
+                  <span style="color:#6B7280">1,204 calls · 8 min ago</span>
+                  <span class="pill pill-ok">Healthy</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;padding:9px 0;gap:8px;flex-wrap:wrap">
+                  <span style="display:flex;align-items:center;gap:7px"><span class="dot dot-danger"></span>WhatConverts</span>
+                  <span style="color:#6B7280">Last sync failed 3 hrs ago</span>
+                  <span class="pill pill-danger">Failed</span>
+                </div>
+              </div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:14px;width:100%;justify-content:center" onclick="showToast('Resync triggered for all connectors')">Force resync all</button>
+            </div>
+            <div class="card-dark">
+              <div class="section-title" style="margin-bottom:12px;font-size:17px">Per-tenant feature overrides</div>
+              <div class="feature-flag">
+                <div><div style="font-size:12.5px;font-weight:600">AI call qualification</div><div style="font-size:11px;color:#6B7280">Phase 2 feature — override for this tenant</div></div>
+                <div class="tog" onclick="toggleTog(this,'AI call qualification')"><div class="tog-k"></div></div>
+              </div>
+              <div class="feature-flag">
+                <div><div style="font-size:12.5px;font-weight:600">Beta reports</div><div style="font-size:11px;color:#6B7280">Enable unreleased report access</div></div>
+                <div class="tog on" onclick="toggleTog(this,'Beta reports')"><div class="tog-k"></div></div>
+              </div>
+              <div class="feature-flag">
+                <div><div style="font-size:12.5px;font-weight:600">White-label mode</div><div style="font-size:11px;color:#6B7280">Hide TrueRead branding</div></div>
+                <div class="tog" onclick="toggleTog(this,'White-label mode')"><div class="tog-k"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ BILLING ══ -->
+      <div class="sa-screen" id="screen-billing">
+        <div class="kpi-grid">
+          <div class="stat"><div class="stat-label">MRR</div><div class="stat-value">$28.4K</div><div class="stat-delta up">+12.2% MoM</div></div>
+          <div class="stat"><div class="stat-label">ARR run rate</div><div class="stat-value">$341K</div><div class="stat-delta up">On track</div></div>
+          <div class="stat"><div class="stat-label">Churn (30d)</div><div class="stat-value">2.1%</div><div class="stat-delta up">-0.4pts vs last month</div></div>
+          <div class="stat"><div class="stat-label">Failed payments</div><div class="stat-value">3</div><div class="stat-delta down">$498 at risk</div></div>
+        </div>
+        <div class="card-dark">
+          <div class="section-title" style="margin-bottom:14px;font-size:17px">Recent invoices</div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>Tenant</th><th>Invoice #</th><th>Plan</th><th>Amount</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td>Smith Roofing LLC</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px">HUB-1044</td><td>Pro</td><td>$150</td><td>Jun 1, 2026</td><td><span class="pill pill-ok">Paid</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Opening invoice HUB-1044')">View</button></td></tr>
+                <tr><td>Ridgeline Corp</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px">HUB-1043</td><td>Basic</td><td>$99</td><td>Jun 1, 2026</td><td><span class="pill pill-ok">Paid</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Opening invoice HUB-1043')">View</button></td></tr>
+                <tr><td>Horizon Roofing</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px">HUB-1042</td><td>Pro</td><td>$150</td><td>Jun 1, 2026</td><td><span class="pill pill-ok">Paid</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Opening invoice HUB-1042')">View</button></td></tr>
+                <tr><td>Peak Roofing Partners</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px">HUB-1041</td><td>Basic</td><td>$150</td><td>May 22, 2026</td><td><span class="pill pill-danger">Failed</span></td><td><button class="btn btn-danger btn-sm" onclick="showToast('Retrying payment for Peak Roofing Partners')">Retry</button></td></tr>
+                <tr><td>Summit Roof Co.</td><td style="font-family:'JetBrains Mono',monospace;font-size:11px">HUB-1038</td><td>Basic</td><td>$99</td><td>May 18, 2026</td><td><span class="pill pill-danger">Failed</span></td><td><button class="btn btn-danger btn-sm" onclick="showToast('Retrying payment for Summit Roof Co.')">Retry</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SUPPORT ══ -->
+      <div class="sa-screen" id="screen-support">
+        <div class="section-header">
+          <div><div class="section-title">Support tickets</div><div class="section-sub">7 open · 2 unassigned</div></div>
+          <select class="inp" style="width:auto;padding:7px 14px;font-size:12.5px"><option>All priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
+        </div>
+        <div class="card-dark" style="padding:0">
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>#</th><th>Tenant</th><th>Subject</th><th>Priority</th><th>Assigned to</th><th>Created</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px">#T-091</td><td>Horizon Roofing</td><td>GHL sync not pulling new contacts</td><td><span class="pill pill-danger">High</span></td><td style="color:#6B7280">Unassigned</td><td style="color:#6B7280">2 hrs ago</td><td><span class="pill pill-warn">Open</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Opening ticket #T-091')">View</button></td></tr>
+                <tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px">#T-090</td><td>Peak Roofing</td><td>Dashboard shows 0 leads since May 30</td><td><span class="pill pill-danger">High</span></td><td>Rajnish K.</td><td style="color:#6B7280">5 hrs ago</td><td><span class="pill pill-blue">In progress</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Opening ticket #T-090')">View</button></td></tr>
+                <tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px">#T-089</td><td>Apex Home</td><td>Can't invite branch manager</td><td><span class="pill pill-warn">Medium</span></td><td style="color:#6B7280">Unassigned</td><td style="color:#6B7280">Yesterday</td><td><span class="pill pill-warn">Open</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Opening ticket #T-089')">View</button></td></tr>
+                <tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px">#T-088</td><td>Smith Roofing</td><td>Weekly audit — rep shows wrong branch</td><td><span class="pill pill-warn">Medium</span></td><td>Rajnish K.</td><td style="color:#6B7280">Jun 16</td><td><span class="pill pill-blue">In progress</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Opening ticket #T-088')">View</button></td></tr>
+                <tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px">#T-087</td><td>Ridgeline Corp</td><td>Revenue Intelligence report blank</td><td><span class="pill pill-ghost">Low</span></td><td>Rajnish K.</td><td style="color:#6B7280">Jun 14</td><td><span class="pill pill-ok">Resolved</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Opening ticket #T-087')">View</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SYSTEM HEALTH ══ -->
+      <div class="sa-screen" id="screen-health">
+        <div class="section-title" style="margin-bottom:18px">System health</div>
+        <div class="kpi-grid">
+          <div class="stat"><div class="stat-label">API uptime (30d)</div><div class="stat-value">99.8%</div><div class="stat-delta up">SLA met</div></div>
+          <div class="stat"><div class="stat-label">Avg API response</div><div class="stat-value">184ms</div><div class="stat-delta up">Good</div></div>
+          <div class="stat"><div class="stat-label">Sync queue depth</div><div class="stat-value">14</div><div class="stat-delta">Normal</div></div>
+          <div class="stat"><div class="stat-label">Error rate (24h)</div><div class="stat-value">0.3%</div><div class="stat-delta up">Below threshold</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card-dark">
+            <div class="section-title" style="margin-bottom:12px;font-size:17px">Service status</div>
+            <div style="display:flex;flex-direction:column;gap:11px;font-size:12.5px">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>Hub API (Node.js)</span><span class="pill pill-ok">Operational</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>PostgreSQL DB</span><span class="pill pill-ok">Operational</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>Recurly webhooks</span><span class="pill pill-ok">Operational</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-warn"></span>CallRail connector</span><span class="pill pill-warn">Degraded</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>Email / SMS delivery</span><span class="pill pill-ok">Operational</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:7px"><span class="dot dot-ok"></span>AI parsing service</span><span class="pill pill-ok">Operational</span></div>
+            </div>
+          </div>
+          <div class="card-dark">
+            <div class="section-title" style="margin-bottom:12px;font-size:17px">Recent incidents</div>
+            <div class="timeline-item"><div class="timeline-dot dot-warn"></div><div><div class="timeline-title">CallRail rate limit — 3 tenants affected</div><div class="timeline-meta">Jun 18, 2026 · Investigating · Auto-retry in queue</div></div></div>
+            <div class="timeline-item"><div class="timeline-dot dot-ok"></div><div><div class="timeline-title">GHL OAuth token refresh resolved</div><div class="timeline-meta">Jun 15, 2026 · Resolved · 22 min duration</div></div></div>
+            <div class="timeline-item"><div class="timeline-dot dot-ok"></div><div><div class="timeline-title">DB connection pool spike — resolved</div><div class="timeline-meta">Jun 10, 2026 · Resolved · 8 min duration</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ AUDIT LOG ══ -->
+      <div class="sa-screen" id="screen-audit">
+        <div class="section-title" style="margin-bottom:18px">Audit log</div>
+        <div class="card-dark" style="padding:0">
+          <div style="padding:12px 18px;border-bottom:1px solid rgba(13,33,55,.06);display:flex;gap:8px;flex-wrap:wrap">
+            <select class="inp" style="width:auto;padding:6px 12px;font-size:12px"><option>All actors</option><option>Super Admins</option><option>Tenants</option><option>System</option></select>
+            <select class="inp" style="width:auto;padding:6px 12px;font-size:12px"><option>All events</option><option>Login</option><option>Impersonation</option><option>Plan change</option><option>Suspension</option></select>
+          </div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>Time</th><th>Actor</th><th>Event</th><th>Target</th><th>IP</th></tr></thead>
+              <tbody>
+                <tr><td style="color:#6B7280;white-space:nowrap">Today 9:42 AM</td><td>Rajnish K. (SA)</td><td><span class="pill pill-purple">Impersonation</span></td><td>Smith Roofing LLC</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px">103.21.x.x</td></tr>
+                <tr><td style="color:#6B7280;white-space:nowrap">Today 9:01 AM</td><td>Rajnish K. (SA)</td><td><span class="pill pill-blue">Login</span></td><td>Super Admin portal</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px">103.21.x.x</td></tr>
+                <tr><td style="color:#6B7280;white-space:nowrap">Yesterday 6:14 PM</td><td>System (Recurly)</td><td><span class="pill pill-warn">Payment failed</span></td><td>Peak Roofing Partners</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px">Webhook</td></tr>
+                <tr><td style="color:#6B7280;white-space:nowrap">Yesterday 3:30 PM</td><td>System</td><td><span class="pill pill-ok">Plan upgraded</span></td><td>Smith Roofing LLC → Pro</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px">Recurly</td></tr>
+                <tr><td style="color:#6B7280;white-space:nowrap">Jun 16 10:12 AM</td><td>Rajnish K. (SA)</td><td><span class="pill pill-danger">Feature override</span></td><td>Horizon Roofing — beta reports ON</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px">103.21.x.x</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ FEATURE FLAGS ══ -->
+      <div class="sa-screen" id="screen-flags">
+        <div class="section-title" style="margin-bottom:4px">Feature flags</div>
+        <div style="font-size:12.5px;color:#374151;margin-bottom:18px">Global defaults. Individual tenants can be overridden from their detail page.</div>
+        <div class="two-col">
+          <div class="card-dark">
+            <div style="font-size:11.5px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">MVP features</div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">R1 Marketing Attribution</div><div style="font-size:11px;color:#6B7280">Available on Basic+</div></div><div class="tog on" onclick="toggleTog(this,'R1 Marketing Attribution')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">R2 Rep Performance</div><div style="font-size:11px;color:#6B7280">Available on Basic+</div></div><div class="tog on" onclick="toggleTog(this,'R2 Rep Performance')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">R3 Pipeline & Funnel</div><div style="font-size:11px;color:#6B7280">Available on Basic+</div></div><div class="tog on" onclick="toggleTog(this,'R3 Pipeline & Funnel')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">R4 Revenue Intelligence</div><div style="font-size:11px;color:#6B7280">Available on Pro+</div></div><div class="tog on" onclick="toggleTog(this,'R4 Revenue Intelligence')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">Communication Hub</div><div style="font-size:11px;color:#6B7280">All paid plans</div></div><div class="tog on" onclick="toggleTog(this,'Communication Hub')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">Weekly Audit tool</div><div style="font-size:11px;color:#6B7280">All plans including Free</div></div><div class="tog on" onclick="toggleTog(this,'Weekly Audit tool')"><div class="tog-k"></div></div></div>
+          </div>
+          <div class="card-dark">
+            <div style="font-size:11.5px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Phase 2 / Beta</div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">AI call qualification</div><div style="font-size:11px;color:#6B7280">Cosine similarity engine — not live</div></div><div class="tog" onclick="toggleTog(this,'AI call qualification')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">OpenAI call assessment</div><div style="font-size:11px;color:#6B7280">Inbound lead scoring — not live</div></div><div class="tog" onclick="toggleTog(this,'OpenAI call assessment')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">Enterprise multi-company</div><div style="font-size:11px;color:#6B7280">Multi-company dashboard</div></div><div class="tog" onclick="toggleTog(this,'Enterprise multi-company')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">White-label mode</div><div style="font-size:11px;color:#6B7280">Custom branding per tenant</div></div><div class="tog" onclick="toggleTog(this,'White-label mode')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">Manual import AI parser</div><div style="font-size:11px;color:#6B7280">OpenAI field mapping beta</div></div><div class="tog on" onclick="toggleTog(this,'Manual import AI parser')"><div class="tog-k"></div></div></div>
+            <div class="feature-flag"><div><div style="font-size:13px;font-weight:600">Mobile PWA push notifications</div><div style="font-size:11px;color:#6B7280">Beta opt-in</div></div><div class="tog" onclick="toggleTog(this,'Mobile PWA push notifications')"><div class="tog-k"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ANNOUNCEMENTS ══ -->
+      <div class="sa-screen" id="screen-announcements">
+        <div class="section-header">
+          <div><div class="section-title">Platform announcements</div><div class="section-sub">Broadcast banners to all tenants or specific segments</div></div>
+          <button class="btn btn-electric" onclick="openModal('announce-modal')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New announcement
+          </button>
+        </div>
+        <div class="card-dark">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap">
+            <div><div style="font-size:14px;font-weight:600">Scheduled maintenance — Jun 22</div><div style="font-size:11.5px;color:#6B7280;margin-top:3px">Target: All tenants · Banner type: Warning · Active: Jun 20–22</div></div>
+            <span class="pill pill-warn">Scheduled</span>
+          </div>
+          <div style="font-size:12.5px;color:#374151;padding:11px 13px;background:#F0F4F9;border-radius:10px">"The Hub will be in read-only mode on Sunday June 22 from 2:00–4:00 AM EST for infrastructure upgrades. No data will be lost."</div>
+        </div>
+        <div class="card-dark">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap">
+            <div><div style="font-size:14px;font-weight:600">New: R4 Revenue Intelligence now on Pro</div><div style="font-size:11.5px;color:#6B7280;margin-top:3px">Target: Pro plan tenants · Banner type: Info · Sent: Jun 1</div></div>
+            <span class="pill pill-ok">Sent</span>
+          </div>
+          <div style="font-size:12.5px;color:#374151;padding:11px 13px;background:#F0F4F9;border-radius:10px">"Revenue Intelligence is now live for all Pro plan accounts. Head to Reports to see deal size trends, rep attribution, and revenue vs. target."</div>
+        </div>
+      </div>
+
+      <!-- ══ ADMIN USERS ══ -->
+      <div class="sa-screen" id="screen-admins">
+        <div class="section-header">
+          <div><div class="section-title">Admin users</div><div class="section-sub">TrueRead / TedIT internal team</div></div>
+          <button class="btn btn-electric" onclick="showToast('Add admin flow opened (demo only)')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add admin
+          </button>
+        </div>
+        <div class="card-dark" style="padding:0">
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Last login</th><th>2FA</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr><td><div style="display:flex;align-items:center;gap:9px"><div class="sa-avatar" style="width:28px;height:28px;font-size:10px">RK</div><span>Rajnish K.</span></div></td><td><span class="pill pill-danger">Super Admin</span></td><td style="font-size:11px">rajnish@tedit.ai</td><td style="color:#6B7280">Today 9:01 AM</td><td><span class="pill pill-ok">Enabled</span></td><td><span class="pill pill-ok">Active</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Editing Rajnish K.')">Edit</button></td></tr>
+                <tr><td><div style="display:flex;align-items:center;gap:9px"><div class="sa-avatar" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,#A8D8FF,#7B6FFF)">JA</div><span>Jim Ahlin</span></div></td><td><span class="pill pill-blue">Owner</span></td><td style="font-size:11px">jim@trueread.io</td><td style="color:#6B7280">Today 8:44 AM</td><td><span class="pill pill-ok">Enabled</span></td><td><span class="pill pill-ok">Active</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Editing Jim Ahlin')">Edit</button></td></tr>
+                <tr><td><div style="display:flex;align-items:center;gap:9px"><div class="sa-avatar" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,#00C49A,#00A882)">CC</div><span>Corey Combes</span></div></td><td><span class="pill pill-blue">Owner</span></td><td style="font-size:11px">corey@trueread.io</td><td style="color:#6B7280">Yesterday 5:30 PM</td><td><span class="pill pill-ok">Enabled</span></td><td><span class="pill pill-ok">Active</span></td><td><button class="btn btn-ghost btn-sm" onclick="showToast('Editing Corey Combes')">Edit</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ── MODALS ── -->
+<div class="modal-bg" id="add-tenant-modal">
+  <div class="modal">
+    <div class="modal-title">Add tenant manually</div>
+    <div class="modal-sub">Create an account on behalf of a roofing company</div>
+    <div class="form-row-grid">
+      <div class="form-row"><label class="inp-label">Company name</label><input class="inp" placeholder="e.g. Smith Roofing LLC"></div>
+      <div class="form-row"><label class="inp-label">Owner full name</label><input class="inp" placeholder="John Smith"></div>
+    </div>
+    <div class="form-row-grid">
+      <div class="form-row"><label class="inp-label">Email</label><input class="inp" placeholder="john@smithroofing.com"></div>
+      <div class="form-row"><label class="inp-label">Phone</label><input class="inp" placeholder="(908) 555-0142"></div>
+    </div>
+    <div class="form-row-grid">
+      <div class="form-row"><label class="inp-label">Plan</label><select class="inp"><option>Free trial</option><option>Basic</option><option>Pro</option><option>Enterprise</option></select></div>
+      <div class="form-row"><label class="inp-label">CRM</label><select class="inp"><option>GoHighLevel</option><option>Leap CRM</option><option>AccuLynx</option><option>JobNimbus</option></select></div>
+    </div>
+    <div class="form-row"><label class="inp-label">Notes (internal only)</label><textarea class="inp" rows="2" placeholder="e.g. Referred by Jim · Demo call Jun 20"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('add-tenant-modal')">Cancel</button>
+      <button class="btn btn-electric" onclick="closeModal('add-tenant-modal');showToast('Tenant created (demo only)')">Create tenant</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="announce-modal">
+  <div class="modal">
+    <div class="modal-title">New announcement</div>
+    <div class="modal-sub">Broadcast a banner or notification to tenants</div>
+    <div class="form-row"><label class="inp-label">Headline</label><input class="inp" placeholder="e.g. Scheduled maintenance Jun 22"></div>
+    <div class="form-row"><label class="inp-label">Message body</label><textarea class="inp" rows="3" placeholder="Shown to tenants in the dashboard banner..."></textarea></div>
+    <div class="form-row-grid">
+      <div class="form-row"><label class="inp-label">Type</label><select class="inp"><option>Info</option><option>Warning</option><option>Success</option></select></div>
+      <div class="form-row"><label class="inp-label">Target</label><select class="inp"><option>All tenants</option><option>Free only</option><option>Basic+</option><option>Pro only</option><option>Trial expiring</option></select></div>
+    </div>
+    <div class="form-row-grid">
+      <div class="form-row"><label class="inp-label">Show from</label><input class="inp" type="date"></div>
+      <div class="form-row"><label class="inp-label">Show until</label><input class="inp" type="date"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('announce-modal')">Cancel</button>
+      <button class="btn btn-electric" onclick="closeModal('announce-modal');showToast('Announcement published (demo only)')">Publish</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-box"><div class="toast" id="toast"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00A882" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span id="toast-text">Saved</span></div></div>
+
+<script>
+var crumbs={overview:'Platform <strong>Overview</strong>',tenants:'Platform <strong>Tenants</strong>','tenant-detail':'Tenants <strong>&rarr; Tenant Detail</strong>',billing:'Platform <strong>Billing &amp; Revenue</strong>',support:'Operations <strong>Support Tickets</strong>',health:'Operations <strong>System Health</strong>',audit:'Operations <strong>Audit Log</strong>',flags:'Config <strong>Feature Flags</strong>',announcements:'Config <strong>Announcements</strong>',admins:'Config <strong>Admin Users</strong>'};
+
+function goScreen(id,navEl){
+  var screens=document.querySelectorAll('.sa-screen');
+  for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');
+  var sc=document.getElementById('screen-'+id);
+  if(sc)sc.classList.add('active');
+  var crumb=document.getElementById('topbar-crumb');
+  if(crumb)crumb.innerHTML=crumbs[id]||id;
+  var navs=document.querySelectorAll('.sbi');
+  for(var j=0;j<navs.length;j++)navs[j].classList.remove('on');
+  if(navEl)navEl.classList.add('on');
+  closeSidebarMobile();
+  document.querySelector('.sa-content').scrollTop=0;
+}
+
+function openTenantDetail(name){
+  goScreen('tenant-detail',null);
+  var el=document.getElementById('detail-tenant-name');
+  if(el)el.textContent=name;
+}
+
+function impersonate(name){
+  var bar=document.getElementById('impersonate-bar');
+  var nameEl=document.getElementById('impersonate-name');
+  if(bar&&nameEl){
+    nameEl.textContent=name;
+    bar.classList.add('show');
+    document.getElementById('sa-sidebar').style.marginTop='42px';
+    document.getElementById('sa-main').style.paddingTop='42px';
+  }
+}
+function stopImpersonate(){
+  var bar=document.getElementById('impersonate-bar');
+  if(bar)bar.classList.remove('show');
+  document.getElementById('sa-sidebar').style.marginTop='0';
+  document.getElementById('sa-main').style.paddingTop='0';
+}
+
+function openModal(id){var m=document.getElementById(id);if(m)m.classList.add('open');}
+function closeModal(id){var m=document.getElementById(id);if(m)m.classList.remove('open');}
+var bgs=document.querySelectorAll('.modal-bg');
+for(var k=0;k<bgs.length;k++){
+  bgs[k].addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+}
+
+function filterTenants(type,el){
+  var tabs=document.querySelectorAll('.tabs .tab');
+  for(var i=0;i<tabs.length;i++)tabs[i].classList.remove('active');
+  if(el)el.classList.add('active');
+  var rows=document.querySelectorAll('#tenant-tbody tr');
+  for(var j=0;j<rows.length;j++){
+    var status=rows[j].getAttribute('data-status');
+    var show=(type==='all')||(type==='trial'&&status==='trial')||(type==='paid'&&status==='paid')||(type==='issue'&&status==='issue');
+    rows[j].style.display=show?'':'none';
+  }
+}
+
+var toastTimer;
+function showToast(msg){
+  var t=document.getElementById('toast');
+  var txt=document.getElementById('toast-text');
+  txt.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){t.classList.remove('show');},2400);
+}
+
+function toggleTog(el,label){
+  el.classList.toggle('on');
+  showToast(label+(el.classList.contains('on')?' enabled':' disabled'));
+}
+
+function toggleSidebar(){document.getElementById('sa-sidebar').classList.toggle('open');}
+function closeSidebarMobile(){
+  if(window.innerWidth<=880)document.getElementById('sa-sidebar').classList.remove('open');
+}
+</script>
+
+</body>
+</html>
